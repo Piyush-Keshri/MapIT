@@ -80,8 +80,13 @@ class App {
 
     constructor() {     //When a new object is created constructors are called immediately. 
 
+        // Get User's Position
         this._getPosition();
-        //Form Submission
+
+        //Get data from local storage
+        this._getLocalStorage();
+
+        // Attach Event Handlers
         form.addEventListener('submit', this._newWorkout.bind(this));
         inputType.addEventListener('change', this._toggleElevationField);
         containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
@@ -113,12 +118,12 @@ class App {
             attribution: '&copy; <a href= "https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(this.#map);
 
-        L.marker(coords).addTo(this.#map)
-            .bindPopup('A pretty CSS3 popup.<br> Easily customizable.')
-            .openPopup();
-
         //When user clicks on the map this event will get the exact co-ordinates
         this.#map.on('click', this._showForm.bind(this));
+
+        this.#workouts.forEach(work => {
+            this._renderWorkoutMarker(work);
+        });
 
     }
 
@@ -193,6 +198,9 @@ class App {
         // Hide form + Clear Input Fields
         this._hideForm();
 
+        //Save to local Storage.
+        this._setLocalStorage();
+
     }
 
     _renderWorkoutMarker(workout) {
@@ -260,6 +268,7 @@ class App {
 
         form.insertAdjacentHTML('afterend', html);
     }
+
     _moveToPopup(e) {
         const workoutEl = e.target.closest('.workout');
 
@@ -277,6 +286,29 @@ class App {
 
         })
     }
+
+    _setLocalStorage() {
+        localStorage.setItem('workouts', JSON.stringify(this.#workouts));
+    }
+
+    _getLocalStorage() {
+        const data = JSON.parse(localStorage.getItem('workouts'));
+        console.log(data);
+
+        if (!data) return;
+
+        this.#workouts = data;
+
+        this.#workouts.forEach(work => {
+            this._renderWorkout(work);
+        });
+    }
+
+    reset(){
+        localStorage.removeItem('workouts');
+        location.reload();
+    }
+
 }
 
 const app = new App();
